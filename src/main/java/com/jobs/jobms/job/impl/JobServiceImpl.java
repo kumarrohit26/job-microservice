@@ -3,13 +3,21 @@ package com.jobs.jobms.job.impl;
 import com.jobs.jobms.job.Job;
 import com.jobs.jobms.job.JobRepository;
 import com.jobs.jobms.job.JobService;
+import com.jobs.jobms.job.dto.JobWithCompanyDTO;
+import com.jobs.jobms.job.external.Company;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class JobServiceImpl implements JobService {
+    @Value("${company_url}")
+    private String company_url;
 
     JobRepository jobRepository;
 
@@ -18,8 +26,27 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public List<Job> findAll() {
-        return jobRepository.findAll();
+    public List<JobWithCompanyDTO> findAll() {
+        List<Job> jobs = jobRepository.findAll();
+
+        /*List<JobWithCompanyDTO> jobWithCompanyDTOS = new ArrayList<>();
+        for(Job job: jobs){
+            jobWithCompanyDTOS.add(convertToDTO(job));
+        }*/
+
+        return jobs.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    private JobWithCompanyDTO convertToDTO(Job job){
+        RestTemplate restTemplate = new RestTemplate();
+        JobWithCompanyDTO jobWithCompanyDTO = new JobWithCompanyDTO();
+        Company company =  restTemplate.getForObject(company_url+job.getCompanyId(), Company.class);
+        jobWithCompanyDTO.setJob(job);
+        jobWithCompanyDTO.setCompany(company);
+
+        return jobWithCompanyDTO;
     }
 
     @Override

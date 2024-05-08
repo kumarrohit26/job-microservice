@@ -1,9 +1,11 @@
 package com.jobs.jobms.job;
 
+import com.jobs.jobms.job.dto.JobWithCompanyDTO;
+
 import java.util.List;
 
 public interface JobService {
-    List<Job> findAll();
+    List<JobWithCompanyDTO> findAll();
 
     Job getJobById(Long id);
 
